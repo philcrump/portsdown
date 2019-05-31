@@ -417,10 +417,7 @@ make
 cp hello_video2.bin ../../bin/
 
 # Check if omxplayer needs to be installed 201807150
-if [ ! -f "/usr/bin/omxplayer" ]; then
-  echo "Installing omxplayer"
-  EnsureInstalled omxplayer
-fi
+EnsureInstalled omxplayer
 
 # Install limesdr_toolbox
 echo "Installing limesdr_toolbox"
