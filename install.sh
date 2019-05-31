@@ -25,9 +25,47 @@ fi
 sudo dpkg --configure -a
 sudo apt-get update
 
+EnsureInstalled()
+{
+  install_list=""
+  for pkg in "$@"
+  do
+    if ! dpkg-query -W -f='${Status}' ${pkg} | grep "ok installed" >/dev/null;
+    then
+      install_list+=" ${pkg}"
+    else
+      echo "${pkg} is installed.";
+    fi
+  done
+  if [ ! -z "${install_list}" ];
+  then
+    echo "Installing ${install_list}";
+    sudo apt-get -y install ${install_list};
+  fi
+}
+
+EnsureUninstalled()
+{
+  uninstall_list=""
+  for pkg in "$@"
+  do
+    if dpkg-query -W -f='${Status}' ${pkg} | grep "ok installed" >/dev/null;
+    then
+      uninstall_list+=" ${pkg}"
+    else
+      echo "${pkg} is not installed.";
+    fi
+  done
+  if [ ! -z "${uninstall_list}" ];
+  then
+    echo "Uninstalling ${uninstall_list}";
+    sudo apt-get -y remove ${uninstall_list};
+  fi
+}
+
 # Uninstall the apt-listchanges package to allow silent install of ca certificates (201704030)
 # http://unix.stackexchange.com/questions/124468/how-do-i-resolve-an-apparent-hanging-update-process
-sudo apt-get -y remove apt-listchanges
+EnsureUninstalled apt-listchanges
 
 # -------- Upgrade distribution ------
 
@@ -35,14 +73,14 @@ sudo apt-get -y remove apt-listchanges
 sudo apt-get -y dist-upgrade
 
 # Install the packages that we need
-sudo apt-get -y install git
-sudo apt-get -y install cmake libusb-1.0-0-dev libx11-dev buffer libjpeg-dev indent 
-sudo apt-get -y install ttf-dejavu-core bc usbmount fftw3-dev wiringpi libvncserver-dev
-sudo apt-get -y install fbi netcat imagemagick rng-tools
-sudo apt-get -y install libvdpau-dev libva-dev libxcb-shape0  # For latest ffmpeg build
-sudo apt-get -y install python-pip pandoc python-numpy pandoc python-pygame gdebi-core # 20180101 FreqShow
-sudo apt-get -y install libsqlite3-dev libi2c-dev # 201811300 Lime
-sudo apt-get -y install sshpass  # 201905090 For Jetson Nano
+EnsureInstalled git
+EnsureInstalled cmake libusb-1.0-0-dev libx11-dev buffer libjpeg-dev indent 
+EnsureInstalled ttf-dejavu-core bc usbmount fftw3-dev wiringpi libvncserver-dev
+EnsureInstalled fbi netcat imagemagick rng-tools
+EnsureInstalled libvdpau-dev libva-dev libxcb-shape0  # For latest ffmpeg build
+EnsureInstalled python-pip pandoc python-numpy pandoc python-pygame gdebi-core # 20180101 FreqShow
+EnsureInstalled libsqlite3-dev libi2c-dev # 201811300 Lime
+EnsureInstalled sshpass  # 201905090 For Jetson Nano
 
 sudo pip install pyrtlsdr  #20180101 FreqShow
 
@@ -138,7 +176,7 @@ make
 cd ../
 
 # For libfdkaac
-sudo apt-get -y install autoconf libtool
+EnsureInstalled autoconf libtool
 git clone https://github.com/mstorsjo/fdk-aac
 cd fdk-aac
 ./autogen.sh
@@ -156,7 +194,7 @@ make V=1 -f linux.mk
 cd ../
 
 # Required for ffmpegsrc.cpp
-sudo apt-get -y install libvncserver-dev libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev
+EnsureInstalled libvncserver-dev libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev
 
 # Make avc2ts
 cd /home/pi/avc2ts
@@ -241,7 +279,7 @@ sudo install fbcp /usr/local/bin/fbcp
 cd ../../
 
 # Install omxplayer
-sudo apt-get -y install omxplayer
+EnsureInstalled install omxplayer
 
 # Install Waveshare 3.5A DTOVERLAY
 cd /home/pi/rpidatv/scripts/
@@ -380,11 +418,11 @@ cp -r /home/pi/rpidatv/scripts/configs/dvbsdr/ /home/pi/dvbsdr/
 # Install FreqShow (see https://learn.adafruit.com/freq-show-raspberry-pi-rtl-sdr-scanner/overview)
 
 # Remove the existing version of libsdl1.2debian
-sudo apt-get -y remove libsdl1.2debian
+EnsureUninstalled libsdl1.2debian
 # Then load the old (1.2.15-5) version of sdl.  Later versions do not work
 sudo gdebi --non-interactive /home/pi/rpidatv/scripts/configs/freqshow/libsdl1.2debian_1.2.15-5_armhf.deb
 # Now reload python-pygame
-sudo apt-get -y install python-pygame
+EnsureInstalled python-pygame
 # Load touchscreen configuration
 sudo cp /home/pi/rpidatv/scripts/configs/freqshow/waveshare_pointercal /etc/pointercal
 # Download FreqShow
