@@ -75,7 +75,7 @@ sudo apt-get -y dist-upgrade
 # Install the packages that we need
 EnsureInstalled git
 EnsureInstalled cmake libusb-1.0-0-dev libx11-dev buffer libjpeg-dev indent 
-EnsureInstalled ttf-dejavu-core bc usbmount fftw3-dev wiringpi libvncserver-dev
+EnsureInstalled ttf-dejavu-core bc usbmount libfftw3-dev wiringpi libvncserver-dev
 EnsureInstalled fbi netcat imagemagick rng-tools
 EnsureInstalled libvdpau-dev libva-dev libxcb-shape0  # For latest ffmpeg build
 EnsureInstalled python-pip pandoc python-numpy pandoc python-pygame gdebi-core # 20180101 FreqShow
