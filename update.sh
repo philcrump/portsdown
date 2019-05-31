@@ -140,9 +140,47 @@ rm /home/pi/tmp/update.jpg >/dev/null 2>/dev/null
 
 DisplayUpdateMsg "Step 4 of 10\nUpdating Software Packages\n\nXXXX------"
 
+EnsureInstalled()
+{
+  install_list=""
+  for pkg in "$@"
+  do
+    if ! dpkg-query -W -f='${Status}' ${pkg} | grep "ok installed" >/dev/null;
+    then
+      install_list+=" ${pkg}"
+    else
+      echo "${pkg} is installed.";
+    fi
+  done
+  if [ ! -z "${install_list}" ];
+  then
+    echo "Installing ${install_list}";
+    sudo apt-get -y install ${install_list};
+  fi
+}
+
+EnsureUninstalled()
+{
+  uninstall_list=""
+  for pkg in "$@"
+  do
+    if dpkg-query -W -f='${Status}' ${pkg} | grep "ok installed" >/dev/null;
+    then
+      uninstall_list+=" ${pkg}"
+    else
+      echo "${pkg} is not installed.";
+    fi
+  done
+  if [ ! -z "${uninstall_list}" ];
+  then
+    echo "Uninstalling ${uninstall_list}";
+    sudo apt-get -y remove ${uninstall_list};
+  fi
+}
+
 # Uninstall the apt-listchanges package to allow silent install of ca certificates
 # http://unix.stackexchange.com/questions/124468/how-do-i-resolve-an-apparent-hanging-update-process
-sudo apt-get -y remove apt-listchanges
+EnsureUninstalled apt-listchanges
 
 sudo dpkg --configure -a     # Make sure that all the packages are properly configured
 sudo apt-get clean           # Clean up the old archived packages
@@ -156,10 +194,10 @@ sudo apt-get -y dist-upgrade # Upgrade all the installed packages to their lates
 
 # --------- Install the Random Number Generator ------
 
-sudo apt-get -y install rng-tools # This makes sure that there is enough entropy for wget
+EnsureInstalled rng-tools # This makes sure that there is enough entropy for wget
 
 # --------- Install sshpass ------
-sudo apt-get -y install sshpass  # For controlling the Jetson Nano
+EnsureInstalled sshpass  # For controlling the Jetson Nano
 
 # Enable USB Storage automount in Stretch (only) 20180704
 cd /lib/systemd/system/
@@ -175,7 +213,7 @@ Lime_Update_Not_Required=$?
 if [ $Lime_Update_Not_Required != 0 ]; then
 
   # Install packages here to catch first-time Lime Install
-  sudo apt-get -y install libsqlite3-dev libi2c-dev 
+  EnsureInstalled libsqlite3-dev libi2c-dev 
 
   # Delete the old installation files
   sudo rm -rf /usr/local/lib/cmake/LimeSuite/* >/dev/null 2>/dev/null
@@ -317,7 +355,7 @@ if [ $avc2ts_Deps_Not_Required != 0 ]; then
 
   # For libfdkaac
   echo "Installing libfdkaac"
-  sudo apt-get -y install autoconf libtool
+  EnsureInstalled autoconf libtool
   git clone https://github.com/mstorsjo/fdk-aac
   cd fdk-aac
   ./autogen.sh
@@ -336,7 +374,7 @@ if [ $avc2ts_Deps_Not_Required != 0 ]; then
   cd ../
 
   # Required for ffmpegsrc.cpp
-  sudo apt-get -y install libvncserver-dev libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev
+  EnsureInstalled libvncserver-dev libavcodec-dev libavformat-dev libswscale-dev libavdevice-dev
 
 fi
 
@@ -381,7 +419,7 @@ cp hello_video2.bin ../../bin/
 # Check if omxplayer needs to be installed 201807150
 if [ ! -f "/usr/bin/omxplayer" ]; then
   echo "Installing omxplayer"
-  sudo apt-get -y install omxplayer
+  EnsureInstalled omxplayer
 fi
 
 # Install limesdr_toolbox
